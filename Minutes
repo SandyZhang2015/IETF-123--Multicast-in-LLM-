@@ -1,0 +1,114 @@
+IETF 123 Madrid
+Jul 22nd, 2025
+
+Multicast in LLM side meeting
+Host by:
+- Tony Przygienda (tonysietf@gmail.com)
+- Sandy Zhang (zhang.zheng@zte.com.cn)
+
+The meeting materials:
+- https://github.com/SandyZhang2015/IETF-123--Multicast-in-LLM-
+- Meeting recording: https://ietf.webex.com/recordingservice/sites/ietf/recording/6895abcd76b54085a9b52269bbfa9675/playback
+
+Meeting Agenda:
+- MoE multicast use case, Sandy Zhang, 
+reference draft: https://datatracker.ietf.org/doc/draft-zhang-rtgwg-llmmoe-multicast/
+- LLM Multicast discussion, Jeffrey Zhang
+reference draft: https://datatracker.ietf.org/doc/draft-zzhang-rift-multicast/, https://datatracker.ietf.org/doc/draft-zzhang-bier-rift/
+
+The AI summary for reference:
+- The meeting focused on exploring the potential of multicast technology to enhance the efficiency and performance of large language model implementations, particularly through the Mixture of Experts architecture.
+- Meeting discusses research on using multicast technology for large language model (LLM) implementations.
+- Current multicast use cases in LLMs rely on unicast technology, creating inefficiencies.
+- Mixture of Experts (MOE) architecture can improve model training and inference cost-effectiveness.
+- Multicasting could alleviate GPU resource strain and reduce inter-node communication congestion.
+- Open questions include the need for unified multicast solutions and specific technologies for different use cases.
+- Multicast benefits high-rate content replication, regardless of LLMMOE specifics.
+- Application assistance is crucial for managing dynamic receiver sets and multicast state maintenance.
+- BIER protocol offers stateless solutions that simplify multicast traffic management.
+- Efficient encapsulation formats are essential for BIER's practical implementation in hardware.
+- Multi-tenancy requires careful management of GPU resources to avoid flooding unrelated components.
+- Congestion control and back pressure are critical for multicast performance in data center environments.
+- Effective multicast solutions need to consider expert selection and dynamic token processing among receivers.
+
+Minutes:
+- - MoE multicast use case, Sandy Zhang, 
+* Dino Farinacci: 
+Ensure that the same content is sent to multiple experts for computation. Each expert will calculate the result.
+A comparison of conventional multicast and reliable multicast methods is needed.
+Having considered Layer 3 multicast, what about Layer 2 multicast? Layer 2 multicast does not require a control plane.
+The methods defined in the UEC may be helpful in this regard. Multicast QUIC could also be considered.
+* Wim Henderickx: 
+When using RDMA, the token is transferred directly from memory to the receiver. The source must ensure that the content has been successfully received.
+If the receiver loses packets due to congestion, the source must resend the content.
+When using multicast, its complexity must be compared with existing unicast solutions.
+* Toerless Eckert: 
+The most interesting part of this problem lies in characterizing the data being transmitted via multicast.
+Congestion feedback is important. Considering the number of receivers in a multicast scenario is important.
+For dynamic scenarios, BIER may be more appropriate.
+In my experience, RMT may not be a good choice for reliable multicast.
+BIER on Tofino may be used because it is not too expensive.
+* Hooman Bidgoli: 
+There needs to be a discussion about where the replication occurs.
+* Sandy Zhang: 
+MoE is a clear use case for multicast. Each calculation uses 9 experts from the 256 experts. This means the content needs to be sent to 9 experts.
+The data size may vary depending on the use case. 
+The LLR or CBFC functions defined in the UEC can be used to help ensure data delivery.
+We welcome more people to join this work.
+
+
+- - LLM Multicast discussion, Jeffrey Zhang
+- Wim Henderickx: 
+Should consider the number of receivers and see if they can be put in one header.
+- Jeffrey Zhang:
+BIER is scalable and supports over 64,000 recipients.
+The application may help to select relevant recipients within a copy.
+- Toerless Eckert: 
+AI applications may differ from television or other scenarios with billions of receivers. Receivers may be dispersed, but BIER has its own solutions.
+Efficiency and other factors that may affect computational performance must be considered.
+- Tony Przygienda: 
+Regardless of the receiver distribution, BIER has both dense and sparse solutions for different scenarios.
+- Hooman Bidgoli: 
+Consideration needs to be given to BIER support on GPUs or NICs.
+And whether users will accept the idea.
+- Toerless Eckert: 
+BIER might be initiated from the top of the switch.
+Even in intra-node scenarios, there are Smart NICs.
+- Jeffrey Zhang:
+This discussion focuses on potential solutions.
+The application may be helpful for less dynamic solutions like PIM.
+RIFT multicast is simpler and more scalable than PIM.
+- Dino Farinacci: 
+There are two scenarios to consider: intra-node and inter-node. BIER seems to be applicable to both cases.
+- Wim Henderickx: 
+The growth of experts in the development of future MoE needs to be considered.
+- Toerless Eckert: 
+For bidirectional multicast, it can be viable in some cases, but if the majority of receivers is determined by the sender, it's no different from SSM.
+I prefer the stateless solutions.
+- Jeffrey Zhang:
+Pre-built functions can be used for predictable scenarios.
+- Xiaohu Xu:
+It is recommended to prioritize stateless solutions such as BIER, as pre-built tree-structured solutions have limitations and may not be suitable. 
+Experts are randomly selected and may be different each time.
+- Toerless Eckert:
+How many receivers are selected?
+- Xiaohu Xu:
+No more than 100. The number of selected experts will continue to increase.
+Since the number of receivers does not exceed 100, reducing the length of the BIER header may be a good idea.
+We hope to see more support from chip vendors.
+The DeepSeekv3 paper will be helpful for understanding this.
+The paper mentions using multicast to improve efficiency.
+Consider using unicast for intra-node scenarios and multicast for inter-node scenarios. Alternatively, optimize the BIER header to accommodate scale up scenarios.
+- Jeffrey Zhang: 
+BIER supports different BitString lengths.
+We can choose the most appropriate BitString length for different use cases.
+- Dino Farinacci: 
+Need to consider both of the number of experts and the number of selected experts for each computation. 
+- Wim Henderickx:
+Regardless of the solution, data retransmission needs to be considered, which can increase complexity.
+For scaled-in scenarios, the number of GPUs may exceed 1,000.
+- Xiaohu Xu: 
+Two solutions can be considered for traditional and future ultra-large scale-up networks.
+
+
+
